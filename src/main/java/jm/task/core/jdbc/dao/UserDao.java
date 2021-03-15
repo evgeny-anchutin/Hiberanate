@@ -10,7 +10,7 @@ public interface UserDao {
 
     void dropUsersTable();
 
-    void saveUser(String name, String lastName, byte age);
+    User saveUser(String name, String lastName, byte age);
 
     void removeUserById(long id);
 

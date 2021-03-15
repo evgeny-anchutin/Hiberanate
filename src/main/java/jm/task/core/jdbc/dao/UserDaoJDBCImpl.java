@@ -12,19 +12,17 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void createUsersTable() {
-        String sql ="create table users\n" +
+        String sql ="CREATE TABLE users\n" +
                 "(\n" +
-                "    id        bigint auto_increment\n" +
-                "        primary key,\n" +
-                "    name      varchar(50) null,\n" +
-                "    last_name varchar(50) null,\n" +
-                "    age       tinyint(1)  null\n" +
+                "    id        BIGINT AUTO_INCREMENT\n" +
+                "        PRIMARY KEY,\n" +
+                "    name      VARCHAR(50) NULL,\n" +
+                "    last_name VARCHAR(50) NULL,\n" +
+                "    age       TINYINT(1)  NULL\n" +
                 ")";
-
         try (Connection connection = Util.getConnection(); Statement cmd = connection.createStatement()) {
             cmd.execute(sql);
-        } catch (SQLException e) {
-            //e.printStackTrace();
+        } catch (SQLException ignored) {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -36,24 +34,33 @@ public class UserDaoJDBCImpl implements UserDao {
             cmd.execute(sql);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        } catch (SQLException e) {
-            //e.printStackTrace();
+        } catch (SQLException ignored) {
         }
     }
 
-    public void saveUser(String name, String lastName, byte age) {
+    public User saveUser(String name, String lastName, byte age) {
+        User user = null;
         String sql = "INSERT INTO users (name, last_name, age) VALUES (?, ?, ?)";
-        try (Connection connection = Util.getConnection(); PreparedStatement cmd = connection.prepareStatement(sql)) {
+        String[] generatedColumns = {"id"};
+        try (Connection connection = Util.getConnection();
+                PreparedStatement cmd = connection.prepareStatement(sql, generatedColumns)) {
             cmd.setString(1, name);
             cmd.setString(2, lastName);
             cmd.setByte(3, age);
-            cmd.executeUpdate();
-            System.out.printf("User с именем - %s %s добавлен в базу\n", name, lastName);
+            int affectedRows = cmd.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet rs = cmd.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        user = new User(name, lastName, age);
+                        user.setId(rs.getLong(1));
+                    }
+                }
+            }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        } catch (SQLException e) {
-            //e.printStackTrace();
+        } catch (SQLException ignored) {
         }
+        return user;
     }
 
     public void removeUserById(long id) {
@@ -64,7 +71,6 @@ public class UserDaoJDBCImpl implements UserDao {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (SQLException e) {
-            //e.printStackTrace();
         }
     }
 
@@ -84,8 +90,7 @@ public class UserDaoJDBCImpl implements UserDao {
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        } catch (SQLException e) {
-            //e.printStackTrace();
+        } catch (SQLException ignored) {
         }
         return users;
     }
@@ -96,8 +101,7 @@ public class UserDaoJDBCImpl implements UserDao {
             cmd.executeUpdate(sql);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        } catch (SQLException e) {
-            //e.printStackTrace();
+        } catch (SQLException ignored) {
         }
     }
 }
