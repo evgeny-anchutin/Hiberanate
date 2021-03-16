@@ -13,12 +13,15 @@ import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
 
+    SessionFactory factory;
+
     public UserDaoHibernateImpl() {
+        factory = Util.getFactory();
     }
 
     @Override
     public void createUsersTable() {
-        String sql ="CREATE TABLE users\n" +
+        String sql = "CREATE TABLE users\n" +
                 "(\n" +
                 "    id        BIGINT AUTO_INCREMENT\n" +
                 "        PRIMARY KEY,\n" +
@@ -48,63 +51,43 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public User saveUser(String name, String lastName, byte age) {
         User user = null;
-        SessionFactory factory = Util.getFactory();
-        try {
-            Session session = factory.getCurrentSession();
-            user = new User(name, lastName, age);
-            session.beginTransaction();
-            session.save(user);
-            session.getTransaction().commit();
-            session.close();
-        } finally {
-            factory.close();
-        }
+        Session session = factory.getCurrentSession();
+        user = new User(name, lastName, age);
+        session.beginTransaction();
+        session.save(user);
+        session.getTransaction().commit();
+        session.close();
         return user;
     }
 
     @Override
     public void removeUserById(long id) {
-        SessionFactory factory = Util.getFactory();
-        try {
-            Session session = factory.getCurrentSession();
-            session.beginTransaction();
-            User user = session.get(User.class, id);
-            session.delete(user);
-            session.getTransaction().commit();
-            session.close();
-        } finally {
-            factory.close();
-        }
+        Session session = factory.getCurrentSession();
+        session.beginTransaction();
+        User user = session.get(User.class, id);
+        session.delete(user);
+        session.getTransaction().commit();
+        session.close();
     }
 
     @Override
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        SessionFactory factory = Util.getFactory();
-        try {
-            Session session = Util.getFactory().getCurrentSession();
-            session.beginTransaction();
-            users = session.createQuery("from User").getResultList();
-            session.getTransaction().commit();
-            session.close();
-        } finally {
-            factory.close();
-        }
+        Session session = factory.getCurrentSession();
+        session.beginTransaction();
+        users = session.createQuery("from User").getResultList();
+        session.getTransaction().commit();
+        session.close();
         return users;
     }
 
     @Override
     public void cleanUsersTable() {
         List<User> users = getAllUsers();
-        SessionFactory factory = Util.getFactory();
-        try {
-            Session session = Util.getFactory().getCurrentSession();
-            session.beginTransaction();
-            users.stream().forEach(session::delete);
-            session.getTransaction().commit();
-            session.close();
-        } finally {
-            factory.close();
-        }
+        Session session = factory.getCurrentSession();
+        session.beginTransaction();
+        users.stream().forEach(session::delete);
+        session.getTransaction().commit();
+        session.close();
     }
 }
